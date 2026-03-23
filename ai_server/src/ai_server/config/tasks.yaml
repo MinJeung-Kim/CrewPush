@@ -1,0 +1,28 @@
+research_task:
+  description: >
+    {topic}에 대한 최신 뉴스를 검색해서 핵심 내용 5개를 정리해줘.
+    - 최근 1주일 이내 뉴스 위주로
+    - 신뢰할 수 있는 출처 사용
+    - 중요도 순으로 정렬
+    - 각 뉴스의 제목, 핵심 내용, 출처 포함
+  expected_output: >
+    다음 형식으로 5개 뉴스 항목 정리:
+    1. [제목] - [핵심 내용 2줄] - [출처]
+    2. ...
+  agent: researcher
+
+writing_task:
+  description: >
+    조사된 뉴스를 바탕으로 {topic}에 대한 한국어 뉴스 브리핑을 작성해줘.
+    - 제목: 오늘의 {topic} 브리핑
+    - 전체 300자 내외
+    - 비전문가도 이해할 수 있는 쉬운 표현 사용
+  expected_output: >
+    아래 형식의 300자 내외 한국어 뉴스 브리핑:
+
+    # 오늘의 {topic} 브리핑
+
+    [브리핑 본문]
+  agent: writer
+  markdown: true
+  output_file: briefing.md
