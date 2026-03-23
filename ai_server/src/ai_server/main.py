@@ -8,7 +8,7 @@ def main():
     topic = input("브리핑 주제를 입력하세요: ") or "AI 반도체"
 
     flow = NewsBriefingFlow()
-    flow.plot()
+    # flow.plot()
     result = flow.kickoff(inputs={"topic": topic})
 
     print("\n" + "=" * 50)

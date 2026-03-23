@@ -46,7 +46,7 @@ basis/
     ```bash
     pip install uv
     python -m venv .venv
-    .venv\Scripts\activate # 가상환경 활성화
+    source .venv/bin/activate # 가상환경 활성화
     crewai install
     ```
 3. 환경변수(.env)에 OPENAI_API_KEY 등 입력
