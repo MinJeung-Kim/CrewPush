@@ -3,19 +3,18 @@ from crewai.flow.flow import Flow, listen, start, router
 from pydantic import BaseModel
 from .crew import NewsBriefingCrew
 
-
-# ① State 정의 — Pydantic으로 타입 보장
 class BriefingState(BaseModel):
     topic: str = ""
     briefing: str = ""
     retry_count: int = 0
-
-
-# ② Flow 정의
+    memory: dict = {}  # state 기반 memory 필드 추가
 class NewsBriefingFlow(Flow[BriefingState]):
     @start()
     def prepare(self):
         print(f"[시작] 주제: {self.state.topic}")
+        # state.memory에 값 저장 예시
+        self.state.memory['prepare_called'] = True
+        self.state.memory['topics_seen'] = self.state.memory.get('topics_seen', []) + [self.state.topic]
 
     @listen(prepare)
     def run_crew(self):
@@ -31,9 +30,14 @@ class NewsBriefingFlow(Flow[BriefingState]):
             full_result += chunk.content
         print('최종 결과 출력 = ', full_result)  # 최종 결과 출력
         self.state.briefing = full_result
+        # state.memory에 결과 저장 예시
+        self.state.memory['last_briefing'] = full_result
 
     @router(run_crew)
     def check_quality(self):
+        # memory에서 값 읽기 예시
+        print(f"[메모리] 이전에 본 토픽들: {self.state.memory.get('topics_seen')}")
+        print(f"[메모리] 마지막 브리핑: {self.state.memory.get('last_briefing', '')[:30]}...")
         if len(self.state.briefing) >= 100:
             print(f"[품질 OK] {len(self.state.briefing)}자")
             return "good"
@@ -47,11 +51,14 @@ class NewsBriefingFlow(Flow[BriefingState]):
 
     @listen("good")
     def save_result(self):
-        print("[저장 완료] outputs/briefing.md")
-        output_dir = "outputs"
-        os.makedirs(output_dir, exist_ok=True)  # 폴더가 없으면 생성
-        with open(os.path.join(output_dir, "briefing.md"), "w", encoding="utf-8") as f:
+        # 항상 프로젝트 루트 기준 outputs/briefing.md에 저장
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        output_dir = os.path.join(base_dir, "outputs")
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "briefing.md")
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(self.state.briefing)
+        print(f"[저장 완료] {output_path}")
         return self.state.briefing
 
     @listen("retry")
