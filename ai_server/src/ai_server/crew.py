@@ -13,7 +13,7 @@ class NewsBriefingCrew:
     tasks: List[Task]
  
     # ---- vLLM 직접 설정 추가 ---- 
-
+    # 커스텀 LLM을 클래스 변수로 정의하여 모든 Agent에서 공유하도록 설정
     custom_llm = LLM(
         model=os.environ.get("MODEL"),
         base_url=os.environ.get("OPENAI_API_BASE"),
@@ -57,10 +57,11 @@ class NewsBriefingCrew:
     # ---- Crew 정의 ----
 
     @crew
-    def crew(self) -> Crew: 
+    def crew(self) -> Crew:
         return Crew(
             agents=self.agents, # @agent 데코레이터로 자동 수집
             tasks=self.tasks, # @task 데코레이터로 자동 수집
             process=Process.sequential,
             verbose=True,
+            stream=True,  # streaming 활성화
         )

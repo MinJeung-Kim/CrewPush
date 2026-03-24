@@ -13,7 +13,6 @@ class BriefingState(BaseModel):
 
 # ② Flow 정의
 class NewsBriefingFlow(Flow[BriefingState]):
-
     @start()
     def prepare(self):
         print(f"[시작] 주제: {self.state.topic}")
@@ -21,12 +20,17 @@ class NewsBriefingFlow(Flow[BriefingState]):
     @listen(prepare)
     def run_crew(self):
         print("[Crew 실행 중...]")
-        result = (
+        streaming = (
             NewsBriefingCrew()
             .crew()
             .kickoff(inputs={"topic": self.state.topic})
         )
-        self.state.briefing = result.raw
+        full_result = ""
+        for chunk in streaming:
+            print(chunk.content, end="", flush=True)
+            full_result += chunk.content
+        print('최종 결과 출력 = ', full_result)  # 최종 결과 출력
+        self.state.briefing = full_result
 
     @router(run_crew)
     def check_quality(self):
