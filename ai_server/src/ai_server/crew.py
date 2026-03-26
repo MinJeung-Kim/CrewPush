@@ -1,18 +1,17 @@
 import os
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
 from crewai.agents.agent_builder.base_agent import BaseAgent
-from typing import List 
+
 
 @CrewBase
-class NewsBriefingCrew:
-    """뉴스 브리핑 생성 Crew"""
+class MyTrainingCrew:
+    """Training 테스트용 Crew"""
 
-    agents: List[BaseAgent]
-    tasks: List[Task]
- 
-    # ---- vLLM 직접 설정 추가 ---- 
+    agents: list[BaseAgent]
+    tasks: list[Task]
+
+     # ---- vLLM 직접 설정 추가 ---- 
     # 커스텀 LLM을 클래스 변수로 정의하여 모든 Agent에서 공유하도록 설정
     custom_llm = LLM(
         model=os.environ.get("MODEL"),
@@ -20,48 +19,51 @@ class NewsBriefingCrew:
         api_key=os.environ.get("OPENAI_API_KEY")
     ) 
 
-    # ---- Agent 정의 ----
-
+    # -------------------------
+    # Agents
+    # -------------------------
     @agent
     def researcher(self) -> Agent:
-        return Agent( 
-            config=self.agents_config["researcher"],  # YAML에서 CrewBase가 자동으로 읽어옴
-            tools=[SerperDevTool()],                  # 도구는 코드에서 주입
+        return Agent(
+            config=self.agents_config["researcher"],  # type: ignore[index]
+            llm=self.custom_llm,
             verbose=True,
-            llm=self.custom_llm
         )
 
     @agent
-    def writer(self) -> Agent:
+    def reporting_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config['writer'], # YAML에서 CrewBase가 자동으로 읽어옴
+            config=self.agents_config["reporting_analyst"],  # type: ignore[index]
+            llm=self.custom_llm,
             verbose=True,
-            llm=self.custom_llm
         )
 
-    # ---- Task 정의 ----
-
+    # -------------------------
+    # Tasks
+    # -------------------------
     @task
     def research_task(self) -> Task:
         return Task(
-            config=self.tasks_config['research_task'], # YAML에서 CrewBase가 자동으로 읽어옴
+            config=self.tasks_config["research_task"],  # type: ignore[index]
+            # human_input: true 는 tasks.yaml 에서 설정
+            # 여기서 중복 설정해도 무방 → yaml 값이 config 로 들어옴
         )
 
     @task
-    def writing_task(self) -> Task:
+    def reporting_task(self) -> Task:
         return Task(
-            config=self.tasks_config['writing_task'], # YAML에서 CrewBase가 자동으로 읽어옴
-            context=[self.research_task()],             # research_task 결과 참고
+            config=self.tasks_config["reporting_task"],  # type: ignore[index]
+            output_file="report.md",
         )
 
-    # ---- Crew 정의 ----
-
+    # -------------------------
+    # Crew
+    # -------------------------
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=self.agents, # @agent 데코레이터로 자동 수집
-            tasks=self.tasks, # @task 데코레이터로 자동 수집
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            stream=True,  # streaming 활성화
         )
