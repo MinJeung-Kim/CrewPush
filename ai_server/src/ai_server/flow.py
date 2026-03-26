@@ -69,5 +69,3 @@ class NewsBriefingFlow(Flow[BriefingState]):
     def handle_give_up(self):
         print("[실패] 3번 재시도 후 품질 미달")
         return "브리핑 생성 실패"
-
- 
