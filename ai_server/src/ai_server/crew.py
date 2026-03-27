@@ -28,6 +28,8 @@ class MyTrainingCrew:
             config=self.agents_config["researcher"],  # type: ignore[index]
             llm=self.custom_llm,
             verbose=True,
+            reasoning=True,
+            max_reasoning_attempts=3
         )
 
     @agent
@@ -36,6 +38,7 @@ class MyTrainingCrew:
             config=self.agents_config["reporting_analyst"],  # type: ignore[index]
             llm=self.custom_llm,
             verbose=True,
+            reasoning=False,
         )
 
     # -------------------------
